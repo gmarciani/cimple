@@ -1,0 +1,29 @@
+#===============================================================================
+* Realizzare la mutua esclusione per la seguente applicazione.
+* L'applicazione prevede i seguenti tipi di threads:
+*     - Tipo-A (A)
+*     - Tipo-B (B)
+* Ordine di priorità: nessuno.
+* Disciplina di accesso: nessuna.
+*
+* Compito: NO
+#===============================================================================
+
+#===============================================================================
+* COMMONS
+#===============================================================================
+Mutex mtxCritical;
+Condition cndFree;
+Boolean busy;
+
+#===============================================================================
+* THREAD A,B
+#===============================================================================
+lock(&mtxCritical);
+while (busy):
+    wait(&cndFree, &mtxCritical);
+
+<criticalSectionA>
+
+signal(&cndFree)
+unlock(&mtxCritical);

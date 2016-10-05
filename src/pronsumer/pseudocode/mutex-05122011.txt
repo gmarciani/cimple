@@ -1,0 +1,12 @@
+#===============================================================================
+* L'applicazione dispone di un buffer condiviso da molteplici threads.
+* Il buffer contiene un solo elemento.
+* Ogni thread appartiene ad una delle seguenti tipologie:
+* - writer (W): scrive un elemento del buffer, se il buffer è non pieno;
+*               se il buffer è pieno, rimane in attesa.
+* - reader (R): legge un elemento del buffer, se il buffer è non vuoto;
+*               se il buffer è vuoto, rimane in attesa.
+* - popper (P): rimuove un elemento del buffer, se il buffer è non vuoto;
+*               se il buffer è vuoto, rimane in attesa;
+*               se threads R sono in attesa di leggere, rimane in attesa.
+#===============================================================================

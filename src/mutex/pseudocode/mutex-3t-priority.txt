@@ -1,0 +1,82 @@
+#===============================================================================
+* Realizzare la mutua esclusione per la seguente applicazione.
+* L'applicazione prevede i seguenti tipi di threads:
+*     - Tipo-A (A)
+*     - Tipo-B (B)
+*     - Tipo-C (C)
+* Ordine di priorità: A>B>C.
+* Disciplina di accesso: No
+*
+* Compito: 30/11/2009
+#===============================================================================
+
+#===============================================================================
+* COMMONS
+#===============================================================================
+DEFINE TYPE_A;
+DEFINE TYPE_B;
+DEFINE TYPE_C;
+
+Mutex mtxCritical;
+Mutex mtxCount;
+Condition cndCountNoA;
+Condition cndCountNoAB;
+
+Int count[3];
+
+#===============================================================================
+* THREAD A
+#===============================================================================
+lock(&mtxCount)
+count[TYPE_A]++;
+unlock(&mtxCount);
+lock(&mtxCritical);
+
+<criticalSectionA>
+
+unlock(&mtxCritical);
+lock(&mtxCount);
+count[TYPE_A]--;
+if (count[TYPE_A] == 0):
+    signal(&cndCountNoA);
+unlock(&mtxCount);
+
+#===============================================================================
+* THREAD B
+#===============================================================================
+lock(&mtxCount)
+count[TYPE_B]++;
+while (count[TYPE_A] > 0):
+    wait(&cndCountNoA, &mtxCount);
+unlock(&mtxCount);
+lock(&mtxCritical);
+
+<criticalSectionB>
+
+unlock(&mtxCritical);
+lock(&mtxCount);
+count[TYPE_B]--;
+if (count[TYPE_A] == 0 && count[TYPE_B] > 0)
+    signal(&cndCountNoA);
+else if (count[TYPE_A] == 0 && count[TYPE_B] == 0)
+    signal(cndCountNoAB);
+unlock(&mtxCount);
+
+#===============================================================================
+* THREAD C
+#===============================================================================
+lock(&mtxCount)
+count[TYPE_C]++;
+while (count[TYPE_B] > 0 || count[TYPE_A] > 0):
+    wait(&cndCount, &mtxCountNoAB);
+unlock(&mtxCount);
+lock(&mtxCritical);
+
+<criticalSectionB>
+
+unlock(&mtxCritical);
+lock(&mtxCount);
+count[TYPE_C]--;
+if (count[TYPE_A] == 0 && count[TYPE_B] == 0)
+    signal(&cndCountNoAB);
+unlock(&mtxCount);

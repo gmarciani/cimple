@@ -1,0 +1,57 @@
+#===============================================================================
+* Realizzare la mutua esclusione per la seguente applicazione.
+* L'applicazione prevede i seguenti tipi di threads:
+*     - Tipo-A (A)
+*     - Tipo-B (B)
+* Ordine di priorità: A>B.
+* Disciplina di accesso: No
+*
+* Compito 01/12/2010
+#===============================================================================
+
+#===============================================================================
+* COMMONS
+#===============================================================================
+DEFINE TYPE_A;
+DEFINE TYPE_B;
+
+Mutex mtxCritical;
+Mutex mtxCount;
+Condition cndCount;
+Int count[2];
+
+#===============================================================================
+* THREAD A
+#===============================================================================
+lock(&mtxCount)
+count[TYPE_A]++;
+unlock(&mtxCount);
+lock(&mtxCritical);
+
+<criticalSectionA>
+
+unlock(&mtxCritical);
+lock(&mtxCount);
+count[TYPE_A]--;
+if (count[TYPE_A] == 0):
+    signal(&cndCount);
+unlock(&mtxCount);
+
+#===============================================================================
+* THREAD B
+#===============================================================================
+lock(&mtxCount)
+count[TYPE_B]++;
+while (count[TYPE_A] > 0):
+    wait(&cndCount, &mtxCount);
+unlock(&mtxCount);
+lock(&mtxCritical);
+
+<criticalSectionB>
+
+unlock(&mtxCritical);
+lock(&mtxCount);
+count[TYPE_B]--;
+if (count[TYPE_A] == 0)
+    signal(&cndCount);
+unlock(&mtxCount);
